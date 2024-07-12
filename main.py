@@ -29,7 +29,8 @@ class SMPParkourRank(StandardPlugin):
             course = str(DEFAULT_COURSE_ID)
 
         if course.lower() == 'ls':
-            courses_list = "\n".join([f"{c['courseId']} - {c['name']}" for c in parkour_data['course']])
+            valid_courses = {t['courseId'] for t in parkour_data['time']}
+            courses_list = "\n".join([f"{c['courseId']} - {c['name']}" for c in parkour_data['course'] if c['courseId'] in valid_courses])
             send(target, f"当前赛道列表:\n{courses_list}", data['message_type'])
             return "OK"
 
@@ -99,6 +100,7 @@ def draw_parkour_rank(course_list, sorted_data, course):
     RankCards = ResponseImage(
         titleColor=PALETTE_SJTU_BLUE,
         title='SMP 赛道排行',
+        footer='数据可能存在分钟级延迟',
         layout='normal',
         width=880,
         cardSubtitleFont=ImageFont.truetype(os.path.join(FONTS_PATH, 'SourceHanSansCN-Medium.otf'), 27),
@@ -127,5 +129,5 @@ def get_player_name(uuid):
         data = response.json()
         return data.get('name', uuid)
     else:
-        print(f"Failed to retrieve data for UUID {uuid}")
-        return uuid
+        print(f"Failed to retrieve data for UUID {uuid}, request error code: {str(response.status_code)}")
+        return "Unknown Player"
